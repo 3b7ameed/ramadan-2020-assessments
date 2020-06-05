@@ -1,3 +1,15 @@
+// email validation logic
+function validateEmail(email) {
+  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
+}
+
+// topic validation logic
+function validateTopic(topicTitle) {
+  const re = /^.{1,100}$/;
+  return re.test(String(topicTitle));
+}
+
 // Render Requests List To DOM
 function renderRequests(datalist) {
   const requestsElement = document.getElementById('listOfRequests');
@@ -115,10 +127,29 @@ async function topVotedFirst(e) {
 document.addEventListener('DOMContentLoaded', () => {
   const FormElement = document.getElementById('theForm');
   const requestsElement = document.getElementById('listOfRequests');
+  const author_name = document.getElementById('theForm')['author_name'];
+  const author_email = document.getElementById('theForm')['author_email'];
+  const topic_title = document.getElementById('theForm')['topic_title'];
+  const topic_details = document.getElementById('theForm')['topic_details'];
 
   //   submit new posts to API
   FormElement.addEventListener('submit', () => {
     event.preventDefault();
+
+    // Validation logic
+    if (
+      author_name.value === '' ||
+      author_email.value === '' ||
+      topic_title.value === '' ||
+      topic_details.value === ''
+    ) {
+      return alert('You should fill all required info!');
+    } else if (!validateEmail(author_email.value)) {
+      return alert('Email not valid!!');
+    } else if (!validateTopic(topic_title.value)) {
+      return alert('Topic title should be less than 100 character!');
+    }
+
     fetch('http://localhost:7777/video-request', {
       method: 'POST',
       headers: {
