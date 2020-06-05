@@ -98,9 +98,18 @@
       </div>
       <hr />
       <h1 class="mb-4">List of requested videos</h1>
-      <button id="showTopVotedFirst" class="btn btn-success mt-3 mb-3">
-        Top Voted First
-      </button>
+      <div style="display: flex; justify-content: space-between;">
+        <button id="showTopVotedFirst" class="btn btn-success mb-3">
+          Top Voted First
+        </button>
+        <form id="searchForm">
+          <label>
+            Search Requests
+            <input id="searchText" type="text" />
+          </label>
+        </form>
+      </div>
+
       <div id="listOfRequests"></div>
     </div>
     <script src="index.js"></script>
