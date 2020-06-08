@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
   FormElement.addEventListener('submit', () => {
     event.preventDefault();
 
-    // Validation logic
+    // Validation logi
     if (
       author_name.value === '' ||
       author_email.value === '' ||
@@ -158,7 +158,52 @@ document.addEventListener('DOMContentLoaded', () => {
       body: new URLSearchParams(new FormData(FormElement)),
     })
       .then((res) => res.json())
-      .then((req) => requestsElement.prepend(createVidReqElem(req)));
+      .then((req) => {
+        requestsElement.prepend(createVidReqElem(req));
+        document
+          .getElementById(`ups-${req._id}`)
+          .addEventListener('click', function () {
+            console.log(`clicked up on ${req._id}`);
+            fetch('http://localhost:7777/video-request/vote', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: JSON.stringify({
+                id: req._id,
+                vote_type: 'ups',
+              }),
+            })
+              .then((res) => res.json())
+              .then(
+                (data) =>
+                  (document.getElementById(`count-${req._id}`).innerText =
+                    data.ups - data.downs)
+              );
+          });
+        document
+          .getElementById(`downs-${req._id}`)
+          .addEventListener('click', function () {
+            fetch('http://localhost:7777/video-request/vote', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: JSON.stringify({
+                id: req._id,
+                vote_type: 'downs',
+              }),
+            })
+              .then((res) => res.json())
+              .then(
+                (data) =>
+                  (document.getElementById(`count-${req._id}`).innerText =
+                    data.ups - data.downs)
+              );
+          });
+      });
   });
 
   //  get Requests list and append it to DOM
