@@ -127,16 +127,27 @@ async function topVotedFirst(e) {
 document.addEventListener('DOMContentLoaded', () => {
   const FormElement = document.getElementById('theForm');
   const requestsElement = document.getElementById('listOfRequests');
-  const author_name = document.getElementById('theForm')['author_name'];
-  const author_email = document.getElementById('theForm')['author_email'];
+  const author_name = document.getElementById('author_name');
+  const author_email = document.getElementById('author_email');
   const topic_title = document.getElementById('theForm')['topic_title'];
   const topic_details = document.getElementById('theForm')['topic_details'];
+
+  // find user id
+  let params = new URL(document.location).searchParams;
+  let id = params.get('id');
+  console.log(id);
+
+  // if there's id load the page and hide the login form
+  if (id) {
+    document.getElementById('everythingElse').classList.remove('d-none');
+    document.getElementById('loginForm').classList.add('d-none');
+  }
 
   //   submit new posts to API
   FormElement.addEventListener('submit', () => {
     event.preventDefault();
 
-    // Validation logi
+    // Validation logic
     if (
       author_name.value === '' ||
       author_email.value === '' ||
@@ -150,12 +161,17 @@ document.addEventListener('DOMContentLoaded', () => {
       return alert('Topic title should be less than 100 character!');
     }
 
+    const formDataToSend = new FormData(FormElement);
+
+    formDataToSend.append('author_name', author_name.value);
+    formDataToSend.append('author_email', author_name.value);
+
     fetch('http://localhost:7777/video-request', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams(new FormData(FormElement)),
+      body: new URLSearchParams(formDataToSend),
     })
       .then((res) => res.json())
       .then((req) => {
