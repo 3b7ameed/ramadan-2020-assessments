@@ -1,3 +1,6 @@
+// user id
+let id;
+
 // email validation logic
 function validateEmail(email) {
   const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -16,49 +19,71 @@ function renderRequests(datalist) {
   requestsElement.innerHTML = '';
   for (let req of datalist) {
     requestsElement.appendChild(createVidReqElem(req));
-    document
-      .getElementById(`ups-${req._id}`)
-      .addEventListener('click', function () {
-        console.log(`clicked up on ${req._id}`);
-        fetch('http://localhost:7777/video-request/vote', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            // 'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: JSON.stringify({
-            id: req._id,
-            vote_type: 'ups',
-          }),
-        })
-          .then((res) => res.json())
-          .then(
-            (data) =>
-              (document.getElementById(`count-${req._id}`).innerText =
-                data.ups - data.downs)
-          );
-      });
-    document
-      .getElementById(`downs-${req._id}`)
-      .addEventListener('click', function () {
-        fetch('http://localhost:7777/video-request/vote', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            // 'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: JSON.stringify({
-            id: req._id,
-            vote_type: 'downs',
-          }),
-        })
-          .then((res) => res.json())
-          .then(
-            (data) =>
-              (document.getElementById(`count-${req._id}`).innerText =
-                data.ups - data.downs)
-          );
-      });
+    const countElm = document.getElementById(`count-${req._id}`);
+    const upsElm = document.getElementById(`ups-${req._id}`);
+    const DownsElm = document.getElementById(`downs-${req._id}`);
+
+    upsElm.addEventListener('click', function () {
+      console.log(`clicked up on ${req._id}`);
+      fetch('http://localhost:7777/video-request/vote', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: JSON.stringify({
+          id: req._id,
+          vote_type: 'ups',
+          user_id: id,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          countElm.innerText = data.ups.length - data.downs.length;
+
+          if (data.ups.includes(id)) {
+            DownsElm.style.opacity = 0.5;
+            upsElm.style.opacity = 1;
+          } else if (data.downs.includes(id)) {
+            upsElm.style.opacity = 0.5;
+            DownsElm.style.opacity = 1;
+          } else {
+            upsElm.style.opacity = 1;
+            DownsElm.style.opacity = 1;
+          }
+        });
+    });
+
+    DownsElm.addEventListener('click', function () {
+      console.log(`clicked down on ${req._id}`);
+      fetch('http://localhost:7777/video-request/vote', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: JSON.stringify({
+          id: req._id,
+          vote_type: 'downs',
+          user_id: id,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          countElm.innerText = data.ups.length - data.downs.length;
+
+          if (data.ups.includes(id)) {
+            DownsElm.style.opacity = 0.5;
+            upsElm.style.opacity = 1;
+          } else if (data.downs.includes(id)) {
+            upsElm.style.opacity = 0.5;
+            DownsElm.style.opacity = 1;
+          } else {
+            upsElm.style.opacity = 1;
+            DownsElm.style.opacity = 1;
+          }
+        });
+    });
   }
 }
 
@@ -81,7 +106,9 @@ function createVidReqElem(req) {
       </div>
       <div class="d-flex flex-column text-center">
          <a id='ups-${req._id}' class="btn btn-link">🔺</a>
-         <h3 id='count-${req._id}' >${req.votes.ups - req.votes.downs}</h3>
+         <h3 id='count-${req._id}' >${
+    req.votes.ups.length - req.votes.downs.length
+  }</h3>
          <a id='downs-${req._id}' class="btn btn-link">🔻</a>
       </div>
    </div>
@@ -118,7 +145,10 @@ async function topVotedFirst(e) {
   const res = await fetch('http://localhost:7777/video-request');
   const data = await res.json();
   const sortedData = data.sort(
-    (a, b) => b.votes.ups - b.votes.downs - (a.votes.ups - a.votes.downs)
+    (a, b) =>
+      b.votes.ups.length -
+      b.votes.downs.length -
+      (a.votes.ups.length - a.votes.downs.length)
   );
   console.log(sortedData);
   renderRequests(sortedData);
@@ -127,14 +157,12 @@ async function topVotedFirst(e) {
 document.addEventListener('DOMContentLoaded', () => {
   const FormElement = document.getElementById('theForm');
   const requestsElement = document.getElementById('listOfRequests');
-  const author_name = document.getElementById('author_name');
-  const author_email = document.getElementById('author_email');
   const topic_title = document.getElementById('theForm')['topic_title'];
   const topic_details = document.getElementById('theForm')['topic_details'];
 
   // find user id
   let params = new URL(document.location).searchParams;
-  let id = params.get('id');
+  id = params.get('id');
   console.log(id);
 
   // if there's id load the page and hide the login form
@@ -148,23 +176,15 @@ document.addEventListener('DOMContentLoaded', () => {
     event.preventDefault();
 
     // Validation logic
-    if (
-      author_name.value === '' ||
-      author_email.value === '' ||
-      topic_title.value === '' ||
-      topic_details.value === ''
-    ) {
+    if (topic_title.value === '' || topic_details.value === '') {
       return alert('You should fill all required info!');
-    } else if (!validateEmail(author_email.value)) {
-      return alert('Email not valid!!');
     } else if (!validateTopic(topic_title.value)) {
       return alert('Topic title should be less than 100 character!');
     }
 
     const formDataToSend = new FormData(FormElement);
 
-    formDataToSend.append('author_name', author_name.value);
-    formDataToSend.append('author_email', author_name.value);
+    formDataToSend.append('author_id', id);
 
     fetch('http://localhost:7777/video-request', {
       method: 'POST',
@@ -189,18 +209,20 @@ document.addEventListener('DOMContentLoaded', () => {
               body: JSON.stringify({
                 id: req._id,
                 vote_type: 'ups',
+                user_id: id,
               }),
             })
               .then((res) => res.json())
               .then(
                 (data) =>
                   (document.getElementById(`count-${req._id}`).innerText =
-                    data.ups - data.downs)
+                    data.ups.length - data.downs.length)
               );
           });
         document
           .getElementById(`downs-${req._id}`)
           .addEventListener('click', function () {
+            console.log(`clicked down on ${req._id}`);
             fetch('http://localhost:7777/video-request/vote', {
               method: 'PUT',
               headers: {
@@ -210,13 +232,14 @@ document.addEventListener('DOMContentLoaded', () => {
               body: JSON.stringify({
                 id: req._id,
                 vote_type: 'downs',
+                user_id: id,
               }),
             })
               .then((res) => res.json())
               .then(
                 (data) =>
                   (document.getElementById(`count-${req._id}`).innerText =
-                    data.ups - data.downs)
+                    data.ups.length - data.downs.length)
               );
           });
       });
