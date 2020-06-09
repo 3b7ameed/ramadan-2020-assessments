@@ -1,7 +1,16 @@
 var VideoRequest = require('./../models/video-requests.model');
+const User = require('./../models/user.model');
 
 module.exports = {
-  createRequest: (vidRequestData) => {
+  createRequest: async (vidRequestData) => {
+    console.log(vidRequestData);
+    const authorId = vidRequestData.author_id;
+    if (authorId) {
+      const userObj = await User.findOne({ _id: authorId });
+      vidRequestData.author_name = userObj.author_name;
+      vidRequestData.author_email = userObj.author_email;
+    }
+
     let newRequest = new VideoRequest(vidRequestData);
     return newRequest.save();
   },
@@ -32,15 +41,31 @@ module.exports = {
     return VideoRequest.findByIdAndUpdate(id, updates, { new: true });
   },
 
-  updateVoteForRequest: async (id, vote_type) => {
+  updateVoteForRequest: async (id, vote_type, user_id) => {
+    console.log(id, vote_type, user_id);
     const oldRequest = await VideoRequest.findById({ _id: id });
     const other_type = vote_type === 'ups' ? 'downs' : 'ups';
+
+    let oldVoteList = oldRequest.votes[vote_type];
+    let oldOtherList = oldRequest.votes[other_type];
+
+    if (!user_id) return;
+
+    if (oldVoteList.find((u) => u === user_id)) {
+      oldVoteList = oldVoteList.filter((u) => u !== user_id);
+    } else {
+      oldVoteList.push(user_id);
+    }
+    if (oldOtherList.find((u) => u === user_id)) {
+      oldOtherList = oldOtherList.filter((u) => u !== user_id);
+    }
+
     return VideoRequest.findByIdAndUpdate(
       { _id: id },
       {
         votes: {
-          [vote_type]: ++oldRequest.votes[vote_type],
-          [other_type]: oldRequest.votes[other_type],
+          [vote_type]: oldVoteList,
+          [other_type]: oldOtherList,
         },
       },
       { new: true }
