@@ -117,16 +117,21 @@
         </div>
 
         <h1 class="mb-4">List of requested videos</h1>
-        <div style="display: flex; justify-content: space-between;">
-          <button id="showTopVotedFirst" class="btn btn-success mb-3">
-            Top Voted First
-          </button>
-          <form id="searchForm">
-            <label>
-              Search Requests
-              <input id="searchText" type="text" />
-            </label>
-          </form>
+        <div>
+          <div
+            style="display: flex; justify-content: space-between;"
+            id="controlReqDisplay"
+          >
+            <button id="showTopVotedFirst" class="btn btn-success mb-3">
+              Top Voted First
+            </button>
+            <form id="searchForm">
+              <label>
+                Search Requests
+                <input id="searchText" type="text" />
+              </label>
+            </form>
+          </div>
         </div>
 
         <div id="listOfRequests"></div>

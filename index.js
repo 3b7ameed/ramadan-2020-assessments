@@ -234,6 +234,32 @@ document.addEventListener('DOMContentLoaded', () => {
   // id the user is the Admin
   if (id === '1011993') {
     document.getElementById('normalUserContent').classList.add('d-none');
+    const controlReqDisplay = document.getElementById('controlReqDisplay');
+    const filterByStatus = document.createElement('select');
+    filterByStatus.innerHTML = `
+      <option value='new'> new </option>
+      <option value='planned'> planned </option>
+      <option value='done'> done </option>
+    `;
+    filterByStatus.classList.add('btn');
+    filterByStatus.classList.add('btn-success');
+    controlReqDisplay.prepend(filterByStatus);
+
+    filterByStatus.addEventListener('change', () => {
+      async function xxx() {
+        console.log('filter by running');
+        const requestsElement = document.getElementById('listOfRequests');
+        requestsElement.innerHTML = '';
+        const res = await fetch('http://localhost:7777/video-request');
+        const data = await res.json();
+        const sortedData = data.filter(
+          (r) => r.status === filterByStatus.value
+        );
+        console.log(sortedData);
+        renderRequests(sortedData);
+      }
+      xxx();
+    });
   }
 
   //   submit new posts to API
