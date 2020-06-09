@@ -22,6 +22,10 @@ function renderRequests(datalist) {
     const countElm = document.getElementById(`count-${req._id}`);
     const upsElm = document.getElementById(`ups-${req._id}`);
     const DownsElm = document.getElementById(`downs-${req._id}`);
+    const selectElm = document.getElementById(`admin-select-status-${req._id}`);
+    const inputResVidElm = document.getElementById(`admin-resVideo-${req._id}`);
+    const submitButton = document.getElementById(`admin-submit-${req._id}`);
+    const deleteButton = document.getElementById(`admin-delete-${req._id}`);
 
     upsElm.addEventListener('click', function () {
       console.log(`clicked up on ${req._id}`);
@@ -84,6 +88,44 @@ function renderRequests(datalist) {
           }
         });
     });
+
+    if (id === '1011993') {
+      selectElm.addEventListener('change', () => {
+        if (selectElm.value !== 'done') {
+          fetch('http://localhost:7777/video-request', {
+            method: 'PUT',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              id: req._id,
+              status: selectElm.value,
+              resVideo: '',
+            }),
+          }).then((x) => location.reload());
+        }
+      });
+
+      submitButton.addEventListener('click', () => {
+        fetch('http://localhost:7777/video-request', {
+          method: 'PUT',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            id: req._id,
+            status: 'done',
+            resVideo: inputResVidElm.value,
+          }),
+        }).then((x) => location.reload());
+      });
+
+      deleteButton.addEventListener('click', () => {
+        fetch('http://localhost:7777/video-request', {
+          method: 'DELETE',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            id: req._id,
+          }),
+        }).then((x) => location.reload());
+      });
+    }
   }
 }
 
@@ -92,6 +134,24 @@ function createVidReqElem(req) {
   let div = document.createElement('div');
   div.innerHTML = `
 <div class="card mb-3">
+   ${
+     id === '1011993'
+       ? `
+     <div class="card-header">
+       <label for="status">Status:</label>
+
+       <select id='admin-select-status-${req._id}' name="status" id="status">
+        <option value="new">new</option>
+        <option value="planned">planned</option>
+        <option value="done">done</option>
+       </select>
+       <input id='admin-resVideo-${req._id}' placeholder='resulotion video' />
+       <button id='admin-submit-${req._id}'  class='btn btn-success'>Submit</button>
+       <button id='admin-delete-${req._id}' class='btn btn-danger' > Delete </button>
+   </div>
+     `
+       : ''
+   }
    <div class="card-body d-flex justify-content-between flex-row">
       <div class="d-flex flex-column">
          <h3>${req.topic_title}</h3>
@@ -169,6 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (id) {
     document.getElementById('everythingElse').classList.remove('d-none');
     document.getElementById('loginForm').classList.add('d-none');
+  }
+
+  // id the user is the Admin
+  if (id === '1011993') {
+    document.getElementById('normalUserContent').classList.add('d-none');
   }
 
   //   submit new posts to API
